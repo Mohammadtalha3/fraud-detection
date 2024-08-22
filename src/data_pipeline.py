@@ -16,17 +16,24 @@ def read_raw_data(config: dict) -> pd.DataFrame:
     for i in tqdm(os.listdir(raw_dataset_dir)):
         raw_dataset = pd.concat([pd.read_csv(raw_dataset_dir + i), raw_dataset])
     
+    print('this begin raw data', raw_dataset.columns.tolist)
+    print('cheking type', raw_dataset.dtypes)
+    
     # Return raw dataset
     return raw_dataset
 
 def check_data(input_data, params, api = False):
     input_data = copy.deepcopy(input_data)
     params = copy.deepcopy(params)
+    inputs=set(input_data['umbrella_limit'])
+    print('limit val', inputs)
+    cc=set(input_data['authorities_contacted'])
+    print('check val', cc)
 
     if not api:
         # Check data types
-        assert input_data.select_dtypes("datetime").columns.to_list() == \
-            params["datetime_columns"], "an error occurs in datetime column(s)."
+        #assert input_data.select_dtypes("datetime").columns.to_list() == \
+            #params["datetime_columns"], "an error occurs in datetime column(s)."
         assert input_data.select_dtypes("int").columns.to_list() == \
             params["int32_col"], "an error occurs in int32 column(s)."
         assert input_data.select_dtypes("object").columns.to_list() == \
@@ -117,10 +124,24 @@ def type_data(input_data):
     """
     # 1. Load Config data
     config_data = util.load_config()
+
+    if '_c39' in input_data.columns:
+        input_data = input_data.drop(columns=['_c39'])
+
+    print('this is input data', input_data.columns.tolist())
+
+    print('this is  input data checking loss ', set(input_data['capital_loss']))
+    print('this is  input data checking gain ', set(input_data['capital_gains']))
+    print('this is  input data checking gain ', set(input_data['months_as_customer']))
+
+
+
+    #input_data = input_data.rename(columns={'capital-gains': 'capital_gains', 'capital-loss': 'capital_loss'})
     
     # 2. Change datetime object
-    for col in config_data["datetime_columns"]:
-        input_data[col] = pd.to_datetime(input_data[col])
+    # for col in config_data["datetime_columns"]:
+    #     input_data[col] = pd.to_datetime(input_data[col])
+
 
     # 3. change float columns type into int32
     input_data = input_data.astype({col: 'int32' for col in input_data.select_dtypes('float64').columns})
@@ -129,14 +150,14 @@ def type_data(input_data):
     input_data = input_data.astype({col: 'int32' for col in input_data.select_dtypes('int64').columns})
 
     # 5. define data into datetime, int32 and object format
-    raw_dataset_date = input_data[config_data['datetime_columns']]
+    #raw_dataset_date = input_data[config_data['datetime_columns']]
     raw_dataset_num = input_data[config_data['int32_col']]
     raw_dataset_num = raw_dataset_num.astype('int32')
     raw_dataset_cat = input_data[config_data['object_predictor']]
     raw_dataset_cat = raw_dataset_cat.astype(str)
 
     # 6 Concatenate data type into one dataset
-    raw_dataset = pd.concat([raw_dataset_date, raw_dataset_num, raw_dataset_cat], axis = 1)
+    raw_dataset = pd.concat([ raw_dataset_num, raw_dataset_cat], axis = 1)#raw_dataset_date,
 
     return raw_dataset
 
@@ -146,6 +167,7 @@ if __name__ == "__main__":
 
     # 2. Read all raw dataset
     raw_dataset = read_raw_data(config_data)
+    raw_dataset1= read_raw_data(config_data)
 
     # 3. Reset Index
     raw_dataset.reset_index(inplace=True, drop=True)
@@ -155,6 +177,7 @@ if __name__ == "__main__":
 
     # 5. Handling data type
     raw_dataset = type_data(raw_dataset)
+    print('this is raw dataset', raw_dataset)
 
     # 6. Change ? data into UNKNOWN
     raw_dataset.collision_type = raw_dataset.collision_type.replace("?","UNKNOWN")
@@ -164,15 +187,20 @@ if __name__ == "__main__":
     # 7. Check data definition
     check_data(raw_dataset, config_data)
 
+    #print('this is raw dataset', raw_dataset)
+
     # 8. Splitting data
     X = raw_dataset[config_data["predictor"]].copy()
-    y = raw_dataset[config_data["label"]].copy()
+    y = raw_dataset1[config_data["label"]].copy()
 
     # 9. splitting train and test set with ratio 0.7:0.3 and do stratify splitting
     x_train, x_test, y_train, y_test = train_test_split(X, y, 
                                                         test_size = 0.3, 
                                                         random_state= 42, 
                                                         stratify= y)
+    print('this is x_train data before dumping', x_train.columns.tolist())
+    print('this is y_train data before dumping', y_train)
+    
     
     # 10. Splitting test and valid set with ratio 0.5:0.5 and do stratify splitting
     x_valid, x_test, y_valid, y_test = train_test_split(x_test, 

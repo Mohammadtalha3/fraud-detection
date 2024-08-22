@@ -123,10 +123,13 @@ object_predictor:
 - police_report_available
 - auto_make
 - auto_model
+#- fraud_reported
 
 label : fraud_reported
 
 predictor:
+
+#- incident_date
 - months_as_customer
 - age
 - policy_number
@@ -161,8 +164,8 @@ predictor:
 - auto_model
 
 api_predictor:
-- policy_bind_date
-- incident_date
+#- policy_bind_date
+#- incident_date
 - months_as_customer
 - age
 - policy_number
@@ -258,6 +261,7 @@ umbrella_limit:
 - '8000000'
 - '9000000'
 - '10000000'
+- '-1000000'
 number_of_vehicles_involved:
 - '1'
 - '2'
@@ -346,7 +350,7 @@ authorities_contacted:
 - 'Fire'
 - 'Other'
 - 'Ambulance'
-- 'UNKNOWN'
+- 'nan'
 incident_state:
 - 'NY'
 - 'SC'
@@ -426,6 +430,140 @@ auto_model:
 - 'M5'
 - 'Accord'
 - 'RSX'
+
+
+backend_columns:
+  - months_as_customer
+  - age
+  - policy_number
+  - policy_annual_premium
+  - insured_zip
+  - capital_gains
+  - capital_loss
+  - incident_hour_of_the_day
+  - total_claim_amount
+  - injury_claim
+  - property_claim
+  - vehicle_claim
+  - policy_state_IL
+  - policy_state_IN
+  - policy_state_OH
+  - policy_csl_100/300
+  - policy_csl_250/500
+  - policy_csl_500/1000
+  - policy_deductable_1000
+  - policy_deductable_2000
+  - policy_deductable_500
+  - insured_sex_MALE
+  - insured_hobbies_base-jumping
+  - insured_hobbies_basketball
+  - insured_hobbies_board-games
+  - insured_hobbies_bungie-jumping
+  - insured_hobbies_camping
+  - insured_hobbies_chess
+  - insured_hobbies_cross-fit
+  - insured_hobbies_dancing
+  - insured_hobbies_exercise
+  - insured_hobbies_golf
+  - insured_hobbies_hiking
+  - insured_hobbies_kayaking
+  - insured_hobbies_movies
+  - insured_hobbies_paintball
+  - insured_hobbies_polo
+  - insured_hobbies_reading
+  - insured_hobbies_skydiving
+  - insured_hobbies_sleeping
+  - insured_hobbies_video-games
+  - insured_hobbies_yachting
+  - collision_type_Front Collision
+  - collision_type_Rear Collision
+  - collision_type_Side Collision
+  - collision_type_UNKNOWN
+  - authorities_contacted_Ambulance
+  - authorities_contacted_Fire
+  - authorities_contacted_Other
+  - authorities_contacted_Police
+  - authorities_contacted_nan
+  - incident_state_NC
+  - incident_state_NY
+  - incident_state_OH
+  - incident_state_PA
+  - incident_state_SC
+  - incident_state_VA
+  - incident_state_WV
+  - incident_city_Arlington
+  - incident_city_Columbus
+  - incident_city_Hillsdale
+  - incident_city_Northbend
+  - incident_city_Northbrook
+  - incident_city_Riverwood
+  - incident_city_Springfield
+  - property_damage_NO
+  - property_damage_UNKNOWN
+  - property_damage_YES
+  - police_report_available_NO
+  - police_report_available_UNKNOWN
+  - police_report_available_YES
+  - auto_make_Accura
+  - auto_make_Audi
+  - auto_make_BMW
+  - auto_make_Chevrolet
+  - auto_make_Dodge
+  - auto_make_Ford
+  - auto_make_Honda
+  - auto_make_Jeep
+  - auto_make_Mercedes
+  - auto_make_Nissan
+  - auto_make_Saab
+  - auto_make_Suburu
+  - auto_make_Toyota
+  - auto_make_Volkswagen
+  - auto_model_3 Series
+  - auto_model_92x
+  - auto_model_93
+  - auto_model_95
+  - auto_model_A3
+  - auto_model_A5
+  - auto_model_Accord
+  - auto_model_C300
+  - auto_model_CRV
+  - auto_model_Camry
+  - auto_model_Civic
+  - auto_model_Corolla
+  - auto_model_E400
+  - auto_model_Escape
+  - auto_model_F150
+  - auto_model_Forrestor
+  - auto_model_Fusion
+  - auto_model_Grand Cherokee
+  - auto_model_Highlander
+  - auto_model_Impreza
+  - auto_model_Jetta
+  - auto_model_Legacy
+  - auto_model_M5
+  - auto_model_MDX
+  - auto_model_ML350
+  - auto_model_Malibu
+  - auto_model_Maxima
+  - auto_model_Neon
+  - auto_model_Passat
+  - auto_model_Pathfinder
+  - auto_model_RAM
+  - auto_model_RSX
+  - auto_model_Silverado
+  - auto_model_TL
+  - auto_model_Tahoe
+  - auto_model_Ultima
+  - auto_model_Wrangler
+  - auto_model_X5
+  - auto_model_X6
+  - incident_type
+  - witnesses
+  - incident_severity
+  - auto_year
+  - umbrella_limit
+  - bodily_injuries
+  - number_of_vehicles_involved
 
 
 label_categories:

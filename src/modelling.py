@@ -188,6 +188,8 @@ def train_eval(configuration_model: str, params: dict, hyperparams_model: list =
         x_train_data = x_train[config_data]
         y_train_data = y_train[config_data]
 
+        print('this is x_train_data in eval', x_train_data)
+
         # Train each model by current dataset configuration
         for model in list_of_model:
             # Debug message
@@ -445,7 +447,7 @@ def create_dist_params(model_name: str) -> dict:
         "learning_rate" : [0.5],
     }
     dist_params_ada = {
-        "base_estimator" : [DecisionTreeClassifier(max_depth = 2)],
+        "estimator" : [DecisionTreeClassifier(max_depth = 2)],
         "n_estimators" : [3],
         "learning_rate" : [0.7],
     }

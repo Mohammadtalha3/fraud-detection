@@ -13,23 +13,23 @@ st.subheader("Just enter variabel below then click Predict button :sunglasses:")
 # Create form of input
 with st.form(key = "auto_insurance_data_form"):
     # Create box for number input
-    policy_bind_date = st.selectbox(
-        label = "When policy_bind_date is this data collected?",
-        options = (
-            "2014-10-17",
-            "2015-10-17",
-            "2017-10-17"
-        )
-    )
+    # policy_bind_date = st.selectbox(
+    #     label = "When policy_bind_date is this data collected?",
+    #     options = (
+    #         "2014-10-17",
+    #         "2015-10-17",
+    #         "2017-10-17"
+    #     )
+    # )
     
-    incident_date = st.selectbox(
-        label = "From which incident_date is this data collected?",
-        options = (
-            "2015-01-25",
-            "2016-01-25",
-            "2017-01-25"
-        )
-    )
+    # incident_date = st.selectbox(
+    #     label = "From which incident_date is this data collected?",
+    #     options = (
+    #         "2015-01-25",
+    #         "2016-01-25",
+    #         "2017-01-25"
+    #     )
+    # )
     
     months_as_customer = st.number_input(
         label = "Enter months_as_customer Value:",
@@ -405,8 +405,8 @@ with st.form(key = "auto_insurance_data_form"):
     if submitted:
         # Create dict of all data in the form
         raw_data = {
-              "policy_bind_date": policy_bind_date,
-              "incident_date": incident_date,
+              #"policy_bind_date": policy_bind_date,
+              #"incident_date": incident_date,
               "months_as_customer": months_as_customer,
               "age": age,
               "policy_number": policy_number,

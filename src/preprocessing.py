@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import util as util
-from imblearn.over_sampling import RandomOverSampler, SMOTENC
+from imblearn.over_sampling import RandomOverSampler, SMOTE
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
@@ -23,6 +23,7 @@ def load_dataset(config_data: dict) -> pd.DataFrame:
 
     # concatenate x and y each set
     train_set = pd.concat([x_train, y_train], axis = 1)
+    print('this \is us loading trainset data', train_set.columns.tolist())
     valid_set = pd.concat([x_valid, y_valid], axis = 1)
     test_set = pd.concat([x_test, y_test], axis = 1)
 
@@ -66,16 +67,26 @@ def balancing(data):
     return x_smote, y_smote, x_over, y_over
 
 def splitxy(set_data):
+
+    print('split data', set_data.columns.tolist())
     x_data = set_data.drop(columns = config_data['label'], axis = 1)
     y_data = set_data[config_data['label']]
+
+    print('this is x_data we are passing to splitNUmcat', x_data)
 
     return x_data, y_data
 
 def splitNumCat(set_data):
     config_data = util.load_config()
+
+    print('this is set data', set_data.columns.to_list())
     
     numerical_col = config_data['int32_col']
     categorical_col = config_data['object_predictor']
+
+    print('this is numerical col in splitnumcat ', numerical_col)
+    print('this iscat col in split num cat', categorical_col)
+    
 
     x_train_num = set_data[numerical_col]
     x_train_cat = set_data[categorical_col]
@@ -83,6 +94,8 @@ def splitNumCat(set_data):
     return  x_train_num, x_train_cat
 
 def imputerNum(data, imputer = None):
+
+    print('this is the data in imputer numerical', data.columns.tolist())
     if imputer == None:
         # Create imputer based on median value
         imputer = SimpleImputer(missing_values = np.nan,
@@ -101,10 +114,16 @@ def imputerNum(data, imputer = None):
     return data_imputed, imputer
 
 def imputerCat(data, imputer = None):
-    data.umbrella_limit = data.umbrella_limit.replace('-1000000','1000000')
+    #data.umbrella_limit = data.umbrella_limit.replace('-1000000','1000000')
+    data.loc[:, 'umbrella_limit'] = data.umbrella_limit.replace('-1000000', '1000000')
+
+    print('this is data in imputer', set(data['umbrella_limit']))
 
     for col in ['collision_type','property_damage','police_report_available']:
-        data[col] = data[col].replace('?', 'UNKNOWN')
+        #data[col] = data[col].replace('?', 'UNKNOWN')
+        data.loc[:, col] = data[col].replace('?', 'UNKNOWN')
+    
+    print('this is data in imputer cat', data.columns.tolist())
         
     if imputer == None:
         # Create Imputer
@@ -192,9 +211,15 @@ def concat_numcat(data_num, data_cat_ohe, data_cat_le):
     data_cat = pd.concat([data_cat_ohe, data_cat_le], axis=1)
     data_concat = pd.concat([data_num, data_cat], axis=1)
 
+    print('this is concated data in pre', data_concat.columns.tolist())
+
     return data_concat
 
 def standardizeData(data, scaler =None):
+
+    print('this data in the stand', data.values)
+    print('this data name in the stand', data.columns.tolist())
+    print('this isthe data len instd start ', len(data.columns))
     if scaler == None:
         # Create Fit Scaler
         scaler = StandardScaler()
@@ -205,6 +230,9 @@ def standardizeData(data, scaler =None):
     data_scaled = pd.DataFrame(data_scaled,
                                 index = data.index,
                                 columns = data.columns)
+    print('this is scaled data ', data_scaled.values)
+    print('this is name  scaled data ', data_scaled.columns.tolist())
+    print('this isthe data len instd ', len(data_scaled.columns))
     
     return data_scaled, scaler
 
@@ -242,6 +270,8 @@ def handlingData(set_data):
     # Concatenate data numeric and categorical
     x_data_concat = pd.concat([x_data_num_imputed, x_data_cat_concat], axis = 1)
 
+    print('this is contacted data in prre', x_data_concat)
+
     # Standardize data using standarscaler
     x_data_clean, scaler_ = standardizeData(x_data_concat, scaler)
 
@@ -260,17 +290,31 @@ if __name__ == "__main__":
     # 2. Load dataset
     train_set, valid_set, test_set = load_dataset(config_data)
 
+    print('train_Data',train_set.columns.tolist())
+
     # 3. Split data train into x and y
     x_train, y_train = splitxy(train_set)
+
+    print('this is x_train', x_train.columns.tolist())
+    print('this is ycls_train', y_train)
 
     # 4. Split data into numerical and categorical for handling each type of data
     x_train_num, x_train_cat = splitNumCat(x_train)
 
+    print('thi si the data ti num imputer', x_train_num.values)
+    print('thi si the data ti num imputer', x_train_num.columns.tolist())
+
     # 5. Imputed numerical data for any missing value
     x_train_num_imputed, imputer_num = imputerNum(data = x_train_num)
 
+    print('thi si the data ti cat imputer', x_train_cat.values)
+    print('thi si the data ti num imputer', x_train_num_imputed.columns.tolist())
+
     # 6. Imputed Categorical data for any missing value
     x_train_cat_imputed, imputer_cat = imputerCat(data = x_train_cat)
+
+    print('thi si the data ti cat imputer', x_train_cat.values)
+    print('thi si the data ti num imputer', x_train_cat_imputed.columns.tolist())
 
     # 7. Encoding data categorical using OHE for nominal data and LE for ordinal data
     x_train_cat_ohe, encoder_ohe_col, encoder_ohe = OHEcat(data = x_train_cat_imputed)
@@ -279,11 +323,26 @@ if __name__ == "__main__":
     # 8. Concatenate ohe and le encoded data
     x_train_cat_concat = pd.concat([x_train_cat_ohe,x_train_cat_le], axis = 1)
 
+
+    print('this is the x_train C_at cnct', x_train_cat_concat.values)
+    print('this is the x_train C_at cnct', x_train_cat_concat.columns.tolist())
+    print('this is the x_train C_at cnct', len(x_train_cat_concat.columns))
+
+
     # 9. Concatenate numerical data and categorical data
     x_train_concat = pd.concat([x_train_num_imputed, x_train_cat_concat], axis=1)
 
+    print('data contacts',x_train_concat.columns.tolist())
+
+    print('data contacts',len(x_train_concat.columns))
+
     # 10. Standardize value of train data
     x_train_clean, scaler = standardizeData(data = x_train_concat)
+
+
+    print('This is the data aftee the standardizer ', x_train_clean.values)
+    print('this is the data aftee the standardizer', x_train_clean.columns.tolist())
+    print('this is the data aftee the standardizer', len(x_train_clean.columns))
 
     # 11. Change class label with Y into 1 and N into 0
     y_train_clean = y_train.map(dict(Y=1, N=0))

@@ -32,6 +32,13 @@ test_set_clean:
 - data/processed/x_test_clean.pkl
 - data/processed/y_test_clean.pkl
 
+train_set_full:
+- data/processed/x_train_full.pkl
+- data/processed/y_train_full.pkl
+
+standardizer_file:
+- data/processed/standardizer.pkl
+
 # -- Preprocessing Related -- #
 imputer_num: models/imputer_num.pkl
 imputer_cat: models/imputer_cat.pkl

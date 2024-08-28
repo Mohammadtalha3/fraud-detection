@@ -35,6 +35,8 @@ def load_valid_clean(params:dict) -> pd.DataFrame:
     x_valid = util.pickle_load(params["valid_set_clean"][0])
     y_valid = util.pickle_load(params["valid_set_clean"][1])
 
+    print('this is x_valid in model', x_valid.columns.tolist())
+
     return x_valid, y_valid
 
 def load_test_clean(params: dict) -> pd.DataFrame:
@@ -164,6 +166,8 @@ def create_model_object(params: dict) -> list:
 def train_eval(configuration_model: str, params: dict, hyperparams_model: list = None):
     # Load dataset
 
+    
+
     # Variabel to store trained models
     list_of_trained_model = dict()
 
@@ -188,7 +192,9 @@ def train_eval(configuration_model: str, params: dict, hyperparams_model: list =
         x_train_data = x_train[config_data]
         y_train_data = y_train[config_data]
 
-        print('this is x_train_data in eval', x_train_data)
+        print('this is x_train_data in eval', x_train_data.columns.tolist())
+        print('this is y_train_data in eval', y_train_data)
+
 
         # Train each model by current dataset configuration
         for model in list_of_model:
@@ -198,14 +204,21 @@ def train_eval(configuration_model: str, params: dict, hyperparams_model: list =
             # Training
             training_time = util.time_stamp()
             model["model_object"].fit(x_train_data, y_train_data)
+            print('look at the model object',model['model_object'])
             training_time = (util.time_stamp() - training_time).total_seconds()
+            
 
             # Debug message
             util.print_debug("Evalutaing model: {}".format(model["model_name"]))
 
+            print('this is x_valid _data', x_valid.columns.tolist())
+
             # Evaluation
             y_predict = model["model_object"].predict(x_valid)
+            print('this is y_precit in the modelling', y_predict)
             performance = classification_report(y_valid, y_predict, output_dict = True)
+
+            print('this is the performance of the models', performance)
 
             # Debug message
             util.print_debug("Logging: {}".format(model["model_name"]))
@@ -264,6 +277,13 @@ def train_eval_test(configuration_model: str, params: dict, hyperparams_model: l
         # Load train data based on its configuration
         x_train_data = x_train[config_data]
         y_train_data = y_train[config_data]
+
+        print('this is is x_train_Data _eval', x_train_data.columns.tolist())
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.max_rows', None)
+
+# Print the DataFrame
+        print(x_train_data)
 
         # Train each model by current dataset configuration
         for model in list_of_model:
@@ -327,6 +347,8 @@ def get_production_model(list_of_model, training_log, params):
     curr_production_model = None
     prev_production_model = None
     production_model_log = None
+    
+    
 
     # Debug message
     util.print_debug("Converting training log type of data from dict to dataframe.")
@@ -494,12 +516,19 @@ if __name__ == "__main__":
     x_train, y_train = load_train_clean(config_data)
     x_valid, y_valid = load_valid_clean(config_data)
     x_test, y_test = load_test_clean(config_data)
+
+    print('this is x_valid data', x_valid.columns.tolist())
+    print('this is x_train data in model', x_train)
+    print('this is x_test data in model ', x_test.columns.tolist())
     
     # 3. Create class weight for training non balancing data
     sklearn_weight = add_weight()
     
     # 4. Training and evaluate model on validation data
     list_of_trained_model, training_log = train_eval("", config_data)
+
+    print('this is list of train models', list_of_trained_model)
+    print('this is  trainng log', training_log)
     
     # 5. Choose the best model on validation data
     model, production_model_log, training_logs = get_production_model(list_of_trained_model, training_log, config_data)

@@ -208,6 +208,9 @@ if __name__ == "__main__":
                                                         test_size = 0.5, 
                                                         random_state= 42, 
                                                         stratify= y_test)
+    
+    print('this is x_train data before dumping', x_valid.columns.tolist())
+    print('this is y_train data before dumping', x_valid.values)
 
     # 11. Save train, valid and test set
     util.pickle_dump(x_train, config_data["train_set_path"][0])

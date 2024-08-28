@@ -8,7 +8,7 @@ st.image(header_images)
 
 # Add some information about the service
 st.title("Auto Insurance Fraud Detection")
-st.subheader("Just enter variabel below then click Predict button :sunglasses:")
+st.subheader("Just enter variable below then click Predict button ")
 
 # Create form of input
 with st.form(key = "auto_insurance_data_form"):
@@ -444,12 +444,15 @@ with st.form(key = "auto_insurance_data_form"):
         # Create loading animation while predicting
         with st.spinner("Sending data to prediction server ..."):
             res = requests.post("http://localhost:8080/predict", json = raw_data).json()
+            #Here we are checking whether the response is valid json or not
+            #st.write('this is the  status code in response to the ')
+            #st.write("Response Text:", res.text)
         
         # Parse the prediction result
         if res["error_msg"] != "":
             st.error("Error Occurs While Predicting: {}".format(res["error_msg"]))
         else:
             if res["res"] != "FRAUD":
-                st.warning("Insurance Claim Predicted: FRAUD.")
+                st.success("Insurance Claim Predicted:  NOT FRAUD.")
             else:
-                st.success("Insurance Claim Predicted: TIDAK FRAUD.")
+                st.warning("Insurance Claim Predicted: FRAUD.")

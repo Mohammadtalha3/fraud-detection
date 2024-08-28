@@ -21,6 +21,7 @@ def load_config() -> dict:
 
 def pickle_load(file_path: str):
     # Load and return pickle file
+    print('this is load file path', file_path)
     return joblib.load(file_path)
 
 def pickle_dump(data, file_path: str) -> None:

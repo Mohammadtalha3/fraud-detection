@@ -25,6 +25,7 @@ def load_dataset(config_data: dict) -> pd.DataFrame:
     train_set = pd.concat([x_train, y_train], axis = 1)
     print('this \is us loading trainset data', train_set.columns.tolist())
     valid_set = pd.concat([x_valid, y_valid], axis = 1)
+    print('this \is us loading validset data', train_set.columns.tolist())
     test_set = pd.concat([x_test, y_test], axis = 1)
 
     # return 3 set of data
@@ -57,6 +58,10 @@ def remove_outlier(set_data):
 def balancing(data):
     x_data = data.drop(columns = config_data['label'])
     y_data = data[config_data['label']]
+
+    print('this is x data in balance', x_data.columns.tolist())
+    print('this is x data in balance', y_data)
+
 
     x_over, y_over = RandomOverSampler(random_state=42).fit_resample(x_data, y_data)
     x_smote, y_smote = SMOTE(random_state=42).fit_resample(x_data, y_data)
@@ -102,6 +107,8 @@ def imputerNum(data, imputer = None):
                                 strategy = "median")
         imputer.fit(data)
 
+        util.pickle_dump(imputer, config_data['imputer_num'])
+
     # Transform data dengan imputer
     # else:
     data_imputed = pd.DataFrame(imputer.transform(data),
@@ -114,6 +121,8 @@ def imputerNum(data, imputer = None):
     return data_imputed, imputer
 
 def imputerCat(data, imputer = None):
+
+    print('this is the data in the imputer_cat_pre', data.columns.tolist())
     #data.umbrella_limit = data.umbrella_limit.replace('-1000000','1000000')
     data.loc[:, 'umbrella_limit'] = data.umbrella_limit.replace('-1000000', '1000000')
 
@@ -132,6 +141,8 @@ def imputerCat(data, imputer = None):
                                 fill_value = 'UNKNOWN')
         imputer.fit(data)
 
+        util.pickle_dump(imputer, config_data['imputer_cat'])
+
     # Transform data with imputer
     data_imputed = imputer.transform(data)
     data_imputed = pd.DataFrame(data_imputed,
@@ -142,25 +153,40 @@ def imputerCat(data, imputer = None):
 
 def OHEcat(data, encoder_col = None, encoder = None) -> pd.DataFrame:
     
+    print('this is data in the ohecat to check pre ', data. columns.tolist())
     nominal = ['policy_state','policy_csl','policy_deductable','insured_sex','insured_hobbies','collision_type',
                 'authorities_contacted','incident_state','incident_city','property_damage','police_report_available',
                 'auto_make','auto_model']
 
     data_ohe = data[nominal]
 
+    print('this is the data in the data_ohe', data_ohe.columns.tolist())
+
     if encoder == None:
         # Create Object
         encoder = OneHotEncoder(handle_unknown = 'ignore',
                                 drop = 'if_binary')
         encoder.fit(data_ohe)
+
+        
         encoder_col = encoder.get_feature_names_out(data_ohe.columns)
+
+        util.pickle_dump(encoder, config_data['ohe_path'])
+
+        print('this is the encoder columns', encoder_col)
+
+
     
     
     # Transform the data
     data_encoded = encoder.transform(data_ohe).toarray()
+
+    print('this is the data encoded before dataframe', data_encoded)
     data_encoded = pd.DataFrame(data_encoded,
                                 index = data_ohe.index,
                                 columns = encoder_col)
+    
+    print('this is ohecat result_data', data_encoded.columns.tolist())
 
     return data_encoded, encoder_col, encoder
 
@@ -185,6 +211,9 @@ def LEcat(data, encoder = None) -> pd.DataFrame:
         encoder = OrdinalEncoder(categories=[incident_type,witnesses,incident_severity,auto_year,
                                    umbrella_limit,bodily_injuries,number_of_vehicles_involved])
         encoder.fit(data_le)
+
+        util.pickle_dump(encoder,config_data['le_path'])
+        #print('New file has been created')
 
     ## Transform the data
     data_encoded = encoder.transform(data_le)
@@ -217,6 +246,8 @@ def concat_numcat(data_num, data_cat_ohe, data_cat_le):
 
 def standardizeData(data, scaler =None):
 
+    config_data= util.load_config()
+
     print('this data in the stand', data.values)
     print('this data name in the stand', data.columns.tolist())
     print('this isthe data len instd start ', len(data.columns))
@@ -224,6 +255,9 @@ def standardizeData(data, scaler =None):
         # Create Fit Scaler
         scaler = StandardScaler()
         scaler.fit(data)
+
+        util.pickle_dump(scaler,config_data['standardizer_file'][0])
+        
 
     # Transform data
     data_scaled = scaler.transform(data)
@@ -245,6 +279,9 @@ def handlingData(set_data):
     # Split data into x_data, y_data
     x_data, y_data = splitxy(set_data)
 
+    print('this is valid daat in the handling', x_data.columns.tolist())
+    print('this is valid daat in the handling', y_data)
+
     # Split x_data into numerical and categorical
     x_data_num, x_data_cat = splitNumCat(x_data)
 
@@ -258,6 +295,8 @@ def handlingData(set_data):
     # Impute num data
     x_data_num_imputed, imputer_num_ = imputerNum(data = x_data_num, imputer = imputer_num)
 
+    #print('this is the values we are ,passing to the  standardizer')
+
     # Impute cat data
     x_data_cat_imputed, imputer_cat_ = imputerCat(data = x_data_cat, imputer = imputer_cat)
 
@@ -268,20 +307,26 @@ def handlingData(set_data):
     x_data_cat_concat = pd.concat([x_data_cat_ohe, x_data_cat_le], axis=1)
         
     # Concatenate data numeric and categorical
-    x_data_concat = pd.concat([x_data_num_imputed, x_data_cat_concat], axis = 1)
+    # x_data_concat = pd.concat([x_data_num_imputed, x_data_cat_concat], axis = 1)
 
-    print('this is contacted data in prre', x_data_concat)
+    # print('this is contacted data in prre', x_data_concat.columns.tolist())
 
     # Standardize data using standarscaler
-    x_data_clean, scaler_ = standardizeData(x_data_concat, scaler)
+    x_data_clean, scaler_ = standardizeData(x_data_num_imputed, scaler)
+
+    x_data_concat = pd.concat([x_data_clean, x_data_cat_concat], axis = 1)
+
+    print('this is contacted data in prre', x_data_concat.columns.tolist())
 
     y_data_clean = y_data.map(dict(Y=1, N=0))
 
-    train_set_clean = pd.concat([x_data_clean, y_data_clean], axis=1)
+    train_set_clean = pd.concat([x_data_concat, y_data_clean], axis=1)
+
+    print('this is trainset data in handle', train_set_clean.columns.tolist())
 
     x_smote_set, y_smote_set, x_over_set, y_over_set = balancing(train_set_clean)
 
-    return x_data_clean, y_data_clean, x_smote_set, y_smote_set, x_over_set, y_over_set
+    return x_data_concat , y_data_clean, x_smote_set, y_smote_set, x_over_set, y_over_set
 
 if __name__ == "__main__":
     # 1. load Configuration file
@@ -290,7 +335,8 @@ if __name__ == "__main__":
     # 2. Load dataset
     train_set, valid_set, test_set = load_dataset(config_data)
 
-    print('train_Data',train_set.columns.tolist())
+    print('train_Data',valid_set.columns.tolist())
+    print('train_Data',valid_set.values)
 
     # 3. Split data train into x and y
     x_train, y_train = splitxy(train_set)
@@ -307,17 +353,22 @@ if __name__ == "__main__":
     # 5. Imputed numerical data for any missing value
     x_train_num_imputed, imputer_num = imputerNum(data = x_train_num)
 
-    print('thi si the data ti cat imputer', x_train_cat.values)
+    print('thi si the data ti cat imputer', x_train_num_imputed.values)
     print('thi si the data ti num imputer', x_train_num_imputed.columns.tolist())
+    print('thi is the daat lenght of the the imputed data', len(x_train_num_imputed.values))
+    #print('this is the data we are getting from the')
 
     # 6. Imputed Categorical data for any missing value
     x_train_cat_imputed, imputer_cat = imputerCat(data = x_train_cat)
 
     print('thi si the data ti cat imputer', x_train_cat.values)
     print('thi si the data ti num imputer', x_train_cat_imputed.columns.tolist())
+    
+    
 
     # 7. Encoding data categorical using OHE for nominal data and LE for ordinal data
     x_train_cat_ohe, encoder_ohe_col, encoder_ohe = OHEcat(data = x_train_cat_imputed)
+    print('this is the cols for encode cat in pre', encoder_ohe_col)
     x_train_cat_le, encoder_le = LEcat(data = x_train_cat_imputed)
 
     # 8. Concatenate ohe and le encoded data
@@ -327,22 +378,35 @@ if __name__ == "__main__":
     print('this is the x_train C_at cnct', x_train_cat_concat.values)
     print('this is the x_train C_at cnct', x_train_cat_concat.columns.tolist())
     print('this is the x_train C_at cnct', len(x_train_cat_concat.columns))
+    #print('Thuis is the data we are working on it', len(x_train.columns.tolist()))
+    
+    
+
 
 
     # 9. Concatenate numerical data and categorical data
-    x_train_concat = pd.concat([x_train_num_imputed, x_train_cat_concat], axis=1)
+    
 
-    print('data contacts',x_train_concat.columns.tolist())
+    #print('data contacts',x_train_concat.columns.tolist())
 
-    print('data contacts',len(x_train_concat.columns))
+    #print('data contacts',len(x_train_concat.columns))
 
     # 10. Standardize value of train data
-    x_train_clean, scaler = standardizeData(data = x_train_concat)
+    #x_train_clean, scaler = standardizeData(data = x_train_concat)
+    x_train_clean,scaler= standardizeData(data=x_train_num_imputed)
+    #util.pickle_dump(scaler,config_data['standardizer_file'][0] )
+
+    print('This is data after standerdizing the numerical cols', x_train_clean.columns.tolist())
+    print('This is values after standerdizing the numerical cols', x_train_clean.values)
 
 
-    print('This is the data aftee the standardizer ', x_train_clean.values)
-    print('this is the data aftee the standardizer', x_train_clean.columns.tolist())
-    print('this is the data aftee the standardizer', len(x_train_clean.columns))
+    #x_train_concat = pd.concat([x_train_num_imputed, x_train_cat_concat], axis=1)
+    x_train_concat = pd.concat([x_train_clean, x_train_cat_concat], axis=1)
+
+
+    print('This is the data aftee the standardizer ', x_train_concat.values)
+    print('this is the data aftee the standardizer', x_train_concat.columns.tolist())
+    print('this is the data aftee the standardizer', len(x_train_concat.columns))
 
     # 11. Change class label with Y into 1 and N into 0
     y_train_clean = y_train.map(dict(Y=1, N=0))
@@ -350,7 +414,12 @@ if __name__ == "__main__":
     le_fit(config_data["label_categories"], config_data["le_label_path"])
 
     # 12. Concatenate x_data and y_data into train_set
-    train_set_clean = pd.concat([x_train_clean, y_train_clean], axis=1)
+    train_set_clean = pd.concat([x_train_concat, y_train_clean], axis=1)
+
+    print('this is the train set after con x and y', train_set_clean.columns.tolist())
+    print('this is the train set after con x and y', (train_set_clean.values))
+    print('this is the train set after con x and y', len(train_set_clean.columns))
+
 
     # 13. Balancing train data using SMOTE and Oversampling
     x_smote, y_smote, x_over, y_over = balancing(train_set_clean)
@@ -360,13 +429,16 @@ if __name__ == "__main__":
     x_valid_smote_clean, y_valid_smote_clean, \
     x_valid_over_clean, y_valid_over_clean  = handlingData(valid_set)
 
+    print('this is x_valid clean in pre', x_valid_clean.columns.tolist())
+    print('this is x_valid clean in pre', y_valid_clean)
+
     x_test_clean, y_test_clean, \
     x_test_smote_clean, y_test_smote_clean, \
     x_test_over_clean, y_test_over_clean = handlingData(test_set)
 
     # 15. Dump training set
     x_train_final = {
-        "nonbalance" : x_train_clean,
+        "nonbalance" : x_train_concat,
         "smote" : x_smote,
         "oversampling" : x_over
     }
@@ -377,14 +449,23 @@ if __name__ == "__main__":
         "oversampling" : y_over
     }
 
+    
+    
+
     # Save dataset
     util.pickle_dump(x_train_final, config_data['train_set_clean'][0])
     util.pickle_dump(y_train_final, config_data['train_set_clean'][1])
+
+    #util.pickle_dump(x_train_concat, config_data['train_set_full'][0])
+    #util.pickle_dump(y_train_clean, config_data['train_set_full'][1])
 
     util.pickle_dump(x_valid_clean, config_data['valid_set_clean'][0])
     util.pickle_dump(y_valid_clean, config_data['valid_set_clean'][1])
 
     util.pickle_dump(x_test_clean, config_data['test_set_clean'][0])
     util.pickle_dump(y_test_clean, config_data['test_set_clean'][1])
+
+   
+    
 
 
